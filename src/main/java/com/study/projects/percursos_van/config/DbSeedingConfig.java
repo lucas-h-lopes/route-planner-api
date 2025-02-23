@@ -23,6 +23,8 @@ public class DbSeedingConfig {
         user.setPassword("123456");
         user.setRole(Role.ADMIN);
         user.setFullName("user administrator");
+        user.setCreatedBy("System");
+        user.setLastModifiedBy("System");
 
         if (!userRepository.existsByEmail(email)) {
             userService.insert(user);
