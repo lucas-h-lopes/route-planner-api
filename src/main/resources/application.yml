@@ -1,0 +1,14 @@
+
+jwt:
+  signature: ${SIGNATURE}
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    name: rotas_db
+    password: ${DATABASE_PASSWORD}
+    username: ${DATABASE_USERNAME}
+    url: ${DATABASE_URL}
+  jpa:
+    hibernate:
+      ddl-auto: update
