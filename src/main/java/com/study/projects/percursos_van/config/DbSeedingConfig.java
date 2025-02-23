@@ -20,7 +20,7 @@ public class DbSeedingConfig {
     private void insertAdmin() {
         User user = new User();
         user.setEmail(email);
-        user.setPassword("123456");
+        user.setPassword("12345678aA@");
         user.setRole(Role.ADMIN);
         user.setFullName("user administrator");
         user.setCreatedBy("System");
