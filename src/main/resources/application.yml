@@ -1,6 +1,7 @@
 
-jwt:
-  signature: ${SIGNATURE}
+security:
+  jwt:
+    signature: ${SIGNATURE}
 
 spring:
   datasource:

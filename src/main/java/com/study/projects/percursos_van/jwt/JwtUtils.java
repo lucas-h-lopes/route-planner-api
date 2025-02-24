@@ -22,7 +22,7 @@ public class JwtUtils {
     protected final String bearer = "Bearer ";
     private final int durationInHours = 2;
 
-    @Value("${jwt.signature}")
+    @Value("${security.jwt.signature}")
     private String signature;
 
     private SecretKey generateSecretKey(){
