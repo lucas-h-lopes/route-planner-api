@@ -1,5 +1,6 @@
 package com.study.projects.percursos_van.web.mapper.user;
 
+import com.study.projects.percursos_van.exception.InvalidRoleException;
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.web.controller.dto.user.UserCreateDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserResponseDTO;
@@ -10,8 +11,14 @@ import java.util.List;
 @NoArgsConstructor
 public class UserMapper {
 
+    private static String validRoles = "ADMIN, DRIVER, STUDENT";
+
     public static User toUser(UserCreateDTO dto){
-        return new User(dto);
+        try {
+            return new User(dto);
+        }catch(IllegalArgumentException e){
+            throw new InvalidRoleException(String.format("O papel '%s' não válido. Papéis válidos: %s", dto.role(), validRoles));
+        }
     }
 
     public static UserResponseDTO toResponse(User user){

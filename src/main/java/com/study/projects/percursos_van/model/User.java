@@ -44,7 +44,7 @@ public class User implements Serializable {
         this.fullName = dto.fullName();
         this.email = dto.email();
         this.password = dto.password();
-        this.role = Role.valueOf(dto.role());
+        this.role = Role.valueOf(dto.role().toUpperCase());
     }
 
     @Column(name = "created_by")
