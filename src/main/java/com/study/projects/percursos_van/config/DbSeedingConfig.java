@@ -25,8 +25,10 @@ public class DbSeedingConfig {
         user.setFullName("user administrator");
         user.setCreatedBy("System");
         user.setLastModifiedBy("System");
+        user.setCpf("83334864014");
 
         if (!userRepository.existsByEmail(email)) {
+
             userService.insert(user);
         }
     }

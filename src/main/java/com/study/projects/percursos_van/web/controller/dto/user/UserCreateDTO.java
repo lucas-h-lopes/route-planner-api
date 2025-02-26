@@ -3,6 +3,7 @@ package com.study.projects.percursos_van.web.controller.dto.user;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.br.CPF;
 
 public record UserCreateDTO(
         @NotBlank(message = "O nome completo é obrigatório")
@@ -16,5 +17,9 @@ public record UserCreateDTO(
                 message = "A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais")
         String password,
         @NotBlank(message = "O papel é obrigatório")
-        String role) {
+        String role,
+        @NotBlank(message = "O CPF é obrigatório")
+        @Size(min = 11, max = 11, message = "O CPF deve conter exatamente 11 dígitos (sem pontuação)")
+        @CPF
+        String cpf) {
 }

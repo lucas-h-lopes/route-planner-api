@@ -30,6 +30,9 @@ public class User implements Serializable {
     @Column(name = "full_name", nullable = false, length = 50)
     private String fullName;
 
+    @Column(name = "cpf", nullable = false, length = 11, unique = true)
+    private String cpf;
+
     @Column(name = "email", nullable = false, length = 200, unique = true)
     private String email;
 
@@ -45,6 +48,7 @@ public class User implements Serializable {
         this.email = dto.email();
         this.password = dto.password();
         this.role = Role.valueOf(dto.role().toUpperCase());
+        this.cpf = dto.cpf();
     }
 
     @Column(name = "created_by")
