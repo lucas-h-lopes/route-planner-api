@@ -1,5 +1,6 @@
 package com.study.projects.percursos_van.exception.handler;
 
+import com.study.projects.percursos_van.exception.DuplicatedCpfException;
 import com.study.projects.percursos_van.exception.DuplicatedEmailException;
 import com.study.projects.percursos_van.exception.InvalidCredentialsException;
 import com.study.projects.percursos_van.exception.InvalidRoleException;
@@ -7,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,15 +24,22 @@ public class GlobalHandler {
                 .body(new ExceptionBody(request, HttpStatus.BAD_REQUEST, e.getMessage(), e));
     }
 
-    @ExceptionHandler(DuplicatedEmailException.class)
-    public ResponseEntity<ExceptionBody> conflictException(Exception e, HttpServletRequest request){
+    @ExceptionHandler({DuplicatedEmailException.class, DuplicatedCpfException.class})
+    public ResponseEntity<ExceptionBody> conflictException(Exception e, HttpServletRequest request) {
         log.info("Exceção conflict lançada: ", e);
         return ResponseEntity.badRequest()
                 .body(new ExceptionBody(request, HttpStatus.BAD_REQUEST, e.getMessage(), e));
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ExceptionBody> accessDeniedException(AccessDeniedException e, HttpServletRequest request) {
+        log.info("Exceção acesso negado: ", e);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ExceptionBody(request, HttpStatus.FORBIDDEN, e.getMessage(), e));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ExceptionBody> methodArgumentNotValidException(Exception e, HttpServletRequest request){
+    public ResponseEntity<ExceptionBody> methodArgumentNotValidException(Exception e, HttpServletRequest request) {
         log.info("Exceção validation lançada: ", e);
         return ResponseEntity.badRequest()
                 .body(new ExceptionBody(request, HttpStatus.BAD_REQUEST, "Erro de validação", e));
