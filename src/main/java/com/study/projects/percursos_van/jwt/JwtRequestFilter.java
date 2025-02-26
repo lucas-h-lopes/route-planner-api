@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,18 +22,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtUserDetailsService service;
 
     @Autowired
-    private  JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = request.getHeader(jwtUtils.authorization);
         String path = request.getRequestURI();
-        if(token == null || !token.startsWith(jwtUtils.bearer)){
+        if (token == null || !token.startsWith(jwtUtils.bearer)) {
             log.info("Token nulo ou não inicializado com 'Bearer '");
             filterChain.doFilter(request, response);
             return;
         }
-        if(!jwtUtils.isTokenValid(token)){
+        if (!jwtUtils.isTokenValid(token)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -44,10 +43,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(String username, HttpServletRequest request){
-        UserDetails userDetails = service.loadUserByUsername(username);
+    private void authenticate(String username, HttpServletRequest request) {
+        JwtUserDetails userDetails = service.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken token =
-                UsernamePasswordAuthenticationToken.authenticated(username, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken.authenticated(userDetails, null, userDetails.getAuthorities());
         token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(token);
     }
