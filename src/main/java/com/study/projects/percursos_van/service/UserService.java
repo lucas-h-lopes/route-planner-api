@@ -3,8 +3,10 @@ package com.study.projects.percursos_van.service;
 import com.study.projects.percursos_van.exception.DuplicatedCpfException;
 import com.study.projects.percursos_van.exception.DuplicatedEmailException;
 import com.study.projects.percursos_van.exception.NotFoundException;
+import com.study.projects.percursos_van.model.Driver;
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.model.enums.Role;
+import com.study.projects.percursos_van.repository.DriverRepository;
 import com.study.projects.percursos_van.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final DriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -32,6 +35,8 @@ public class UserService {
             formatAndSetFullName(user);
             formatAndSetEmail(user);
             encodeAndSetPassword(user);
+
+            insertEntityByUserRole(user);
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             throw new DuplicatedCpfException("CPF '" + user.getCpf() + "' já está cadastrado no sistema");
@@ -66,5 +71,20 @@ public class UserService {
     private void encodeAndSetPassword(User user) {
         String password = user.getPassword();
         user.setPassword(passwordEncoder.encode(password));
+    }
+
+    private void insertEntityByUserRole(User user) {
+        if (user.getRole().equals(Role.DRIVER)) {
+            Driver driver = new Driver();
+            driver.setUser(user);
+            setToBlank(driver);
+            driverRepository.save(driver);
+        }
+    }
+
+    private void setToBlank(Driver driver) {
+        driver.setCnh("");
+        driver.setCnhCat(' ');
+        driver.setCnhExpiration(null);
     }
 }
