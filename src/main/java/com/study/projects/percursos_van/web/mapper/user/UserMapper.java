@@ -1,7 +1,8 @@
 package com.study.projects.percursos_van.web.mapper.user;
 
-import com.study.projects.percursos_van.exception.InvalidRoleException;
+import com.study.projects.percursos_van.jwt.JwtUserDetails;
 import com.study.projects.percursos_van.model.User;
+import com.study.projects.percursos_van.service.UserRoleValidator;
 import com.study.projects.percursos_van.web.controller.dto.user.UserCreateDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserResponseDTO;
 import lombok.NoArgsConstructor;
@@ -11,21 +12,16 @@ import java.util.List;
 @NoArgsConstructor
 public class UserMapper {
 
-    private static String validRoles = "ADMIN, DRIVER, STUDENT";
-
-    public static User toUser(UserCreateDTO dto){
-        try {
-            return new User(dto);
-        }catch(IllegalArgumentException e){
-            throw new InvalidRoleException(String.format("O papel '%s' não válido. Papéis válidos: %s", dto.role(), validRoles));
-        }
+    public static User toUser(UserCreateDTO dto, JwtUserDetails details) {
+        UserRoleValidator.validateUserRole(dto.role(), details);
+        return new User(dto);
     }
 
-    public static UserResponseDTO toResponse(User user){
+    public static UserResponseDTO toResponse(User user) {
         return new UserResponseDTO(user);
     }
 
-    public static List<UserResponseDTO> toResponseList(List<User> users){
+    public static List<UserResponseDTO> toResponseList(List<User> users) {
         return users.stream().map(UserMapper::toResponse).toList();
     }
 }
