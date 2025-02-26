@@ -1,9 +1,6 @@
 package com.study.projects.percursos_van.exception.handler;
 
-import com.study.projects.percursos_van.exception.DuplicatedCpfException;
-import com.study.projects.percursos_van.exception.DuplicatedEmailException;
-import com.study.projects.percursos_van.exception.InvalidCredentialsException;
-import com.study.projects.percursos_van.exception.InvalidRoleException;
+import com.study.projects.percursos_van.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,7 +21,7 @@ public class GlobalHandler {
                 .body(new ExceptionBody(request, HttpStatus.BAD_REQUEST, e.getMessage(), e));
     }
 
-    @ExceptionHandler({DuplicatedEmailException.class, DuplicatedCpfException.class})
+    @ExceptionHandler({DuplicatedEmailException.class, DuplicatedCpfException.class, DuplicatedCnhException.class})
     public ResponseEntity<ExceptionBody> conflictException(Exception e, HttpServletRequest request) {
         log.info("Exceção conflict lançada: ", e);
         return ResponseEntity.badRequest()
