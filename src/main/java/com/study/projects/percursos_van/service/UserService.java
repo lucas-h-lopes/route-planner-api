@@ -1,5 +1,6 @@
 package com.study.projects.percursos_van.service;
 
+import com.study.projects.percursos_van.exception.DuplicatedCpfException;
 import com.study.projects.percursos_van.exception.DuplicatedEmailException;
 import com.study.projects.percursos_van.exception.NotFoundException;
 import com.study.projects.percursos_van.model.User;
@@ -24,12 +25,16 @@ public class UserService {
     @Transactional
     public User insert(User user) {
         try {
+            boolean existsByEmail = userRepository.existsByEmail(user.getEmail());
+            if (existsByEmail) {
+                throw new DuplicatedEmailException("Usuário '" + user.getEmail() + "' já está cadastrado no sistema");
+            }
             formatAndSetFullName(user);
             formatAndSetEmail(user);
             encodeAndSetPassword(user);
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            throw new DuplicatedEmailException("Usuário '" + user.getEmail() + "' já está cadastrado no sistema");
+            throw new DuplicatedCpfException("CPF '" + user.getCpf() + "' já está cadastrado no sistema");
         }
     }
 
