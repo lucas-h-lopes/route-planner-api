@@ -1,5 +1,6 @@
 package com.study.projects.percursos_van.web.controller;
 
+import com.study.projects.percursos_van.jwt.JwtUserDetails;
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.service.UserService;
 import com.study.projects.percursos_van.web.controller.dto.user.UserCreateDTO;
@@ -8,6 +9,8 @@ import com.study.projects.percursos_van.web.mapper.user.UserMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,8 +27,9 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> insert(@RequestBody @Valid UserCreateDTO dto) {
-        User user = UserMapper.toUser(dto);
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DRIVER')")
+    public ResponseEntity<UserResponseDTO> insert(@RequestBody @Valid UserCreateDTO dto, @AuthenticationPrincipal JwtUserDetails details) {
+        User user = UserMapper.toUser(dto, details);
         userService.insert(user);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
