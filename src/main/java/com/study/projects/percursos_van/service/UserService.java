@@ -10,11 +10,14 @@ import com.study.projects.percursos_van.repository.DriverRepository;
 import com.study.projects.percursos_van.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,11 +42,35 @@ public class UserService {
             insertEntityByUserRole(user);
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
+            e.printStackTrace();
             throw new DuplicatedCpfException("CPF '" + user.getCpf() + "' já está cadastrado no sistema");
         }
     }
 
     @Transactional(readOnly = true)
+    public User findById(Integer id){
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Usuário com id '%d' não foi encontrado no sistema", id)));
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> findAll(String fullName, String role){
+        User user = new User();
+        if(role != null) {
+            UserRoleValidator.validateUserRole(role);
+            user.setRole(Role.valueOf(role.toUpperCase()));
+        }
+        user.setFullName(fullName);
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreCase()
+                .withIgnoreNullValues()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+
+        Example<User> example = Example.of(user, matcher);
+        return userRepository.findAll(example);
+    }
+
+    @Transactional(readOnly = true) 
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Usuário '" + email + "' não foi encontrado no sistema"));
@@ -83,7 +110,6 @@ public class UserService {
     }
 
     private void setToBlank(Driver driver) {
-        driver.setCnh("");
         driver.setCnhCat(' ');
         driver.setCnhExpiration(null);
     }
