@@ -28,4 +28,13 @@ public class UserRoleValidator {
                     String.join(", ", validRoles)));
         }
     }
+
+    public static void validateUserRole(String role){
+        try{
+            Role.valueOf(role.toUpperCase());
+        }catch(IllegalArgumentException e){
+            throw new InvalidRoleException(String.format("O papel '%s' não válido. Papéis válidos: %s", role,
+                    String.join(", ", validRoles)));
+        }
+    }
 }
