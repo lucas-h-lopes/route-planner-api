@@ -28,6 +28,13 @@ public class GlobalHandler {
                 .body(new ExceptionBody(request, HttpStatus.BAD_REQUEST, e.getMessage(), e));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ExceptionBody> notFoundException(NotFoundException e, HttpServletRequest request){
+        log.info("Exceção not found lançada: ", e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND.value())
+                .body(new ExceptionBody(request, HttpStatus.NOT_FOUND, e.getMessage(), e));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ExceptionBody> accessDeniedException(AccessDeniedException e, HttpServletRequest request) {
         log.info("Exceção acesso negado: ", e);
