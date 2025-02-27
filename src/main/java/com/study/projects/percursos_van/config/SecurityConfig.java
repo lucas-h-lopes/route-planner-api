@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,10 +29,12 @@ public class SecurityConfig {
         return security
                 .httpBasic(x -> x.disable())
                 .formLogin(x -> x.disable())
-                .csrf(x -> x.disable())
+                .csrf(x -> x.ignoringRequestMatchers("/h2/**").disable())
+                .headers(x -> x.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .exceptionHandling(x -> x.authenticationEntryPoint(new JwtEntryPoint()))
                 .authorizeHttpRequests(x -> x.requestMatchers(
-                        antMatcher(HttpMethod.POST, "/api/v1/auth"))
+                                antMatcher(HttpMethod.POST, "/api/v1/auth"),
+                                antMatcher("/h2/**"))
                         .permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -40,12 +43,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public JwtRequestFilter filter(){
+    public JwtRequestFilter filter() {
         return new JwtRequestFilter();
     }
 
