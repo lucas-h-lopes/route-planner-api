@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .exceptionHandling(x -> x.authenticationEntryPoint(new JwtEntryPoint()))
                 .authorizeHttpRequests(x -> x.requestMatchers(
                                 antMatcher(HttpMethod.POST, "/api/v1/auth"),
+                                antMatcher(HttpMethod.GET, "/api/v1/confirmation"),
                                 antMatcher("/h2/**"))
                         .permitAll()
                         .anyRequest().authenticated())
