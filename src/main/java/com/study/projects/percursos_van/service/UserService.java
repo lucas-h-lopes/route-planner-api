@@ -1,8 +1,6 @@
 package com.study.projects.percursos_van.service;
 
-import com.study.projects.percursos_van.exception.DuplicatedCpfException;
-import com.study.projects.percursos_van.exception.DuplicatedEmailException;
-import com.study.projects.percursos_van.exception.NotFoundException;
+import com.study.projects.percursos_van.exception.*;
 import com.study.projects.percursos_van.model.Driver;
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.model.enums.Role;
@@ -27,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Transactional
     public User insert(User user) {
@@ -68,6 +67,23 @@ public class UserService {
 
         Example<User> example = Example.of(user, matcher);
         return userRepository.findAll(example);
+    }
+
+    @Transactional
+    public void updateEmail(String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser){
+        if(!newEmail.equalsIgnoreCase(confirmationEmail)){
+            throw new MismatchedEmailException("Os e-mails não conferem");
+        }
+
+        if(!passwordEncoder.matches(actualPassword, authenticatedUser.getPassword())){
+            throw new InvalidCredentialsException("As credenciais não conferem");
+        }
+
+        if(userRepository.existsByEmail(newEmail)){
+            throw new DuplicatedEmailException("Já existe um usuário com este e-mail");
+        }
+
+        emailService.sendWithEmailChange(authenticatedUser, newEmail);
     }
 
     @Transactional(readOnly = true) 

@@ -1,7 +1,7 @@
 package com.study.projects.percursos_van.service;
 
 import com.study.projects.percursos_van.exception.InvalidRoleException;
-import com.study.projects.percursos_van.jwt.JwtUserDetails;
+import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.model.enums.Role;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -14,13 +14,13 @@ public class UserRoleValidator {
     private UserRoleValidator() {
     }
 
-    public static void validateUserRole(String role, JwtUserDetails authenticatedUser) {
+    public static void validateUserRole(String role, User user) {
         try {
             Role.valueOf(role.toUpperCase());
-            if (authenticatedUser.getRole().equalsIgnoreCase(Role.ADMIN.name()) && role.equalsIgnoreCase("STUDENT")) {
+            if (user.getRole().name().equalsIgnoreCase(Role.ADMIN.name()) && role.equalsIgnoreCase("STUDENT")) {
                 throw new AccessDeniedException("Somente usuários com papél 'DRIVER' podem criar usuários com papel 'STUDENT'");
             }
-            if (authenticatedUser.getRole().equalsIgnoreCase(Role.DRIVER.name()) && !role.equalsIgnoreCase("STUDENT")) {
+            if (user.getRole().name().equalsIgnoreCase(Role.DRIVER.name()) && !role.equalsIgnoreCase("STUDENT")) {
                 throw new AccessDeniedException("Usuários com papél 'DRIVER' só podem criar usuários com papel 'STUDENT'");
             }
         } catch (IllegalArgumentException e) {
