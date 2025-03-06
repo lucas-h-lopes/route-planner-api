@@ -3,21 +3,40 @@ security:
   jwt:
     signature: ${SIGNATURE}
 
+url:
+  base-url:
+    dev: http://localhost:8080
+    prod:
+  resource:
+    confirmation: /api/v1/confirmation
+
 spring:
   h2:
     console:
       enabled: true
       path: /h2
   datasource:
-    url: jdbc:h2:mem:routes_test_db
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-    # driver-class-name: org.postgresql.Driver
     name: rotas_db
-    # password: ${DATABASE_PASSWORD}
-    # username: ${DATABASE_USERNAME}
-    # url: ${DATABASE_URL}
+    #url: jdbc:h2:mem:routes_test_db
+    # driver-class-name: org.h2.Driver
+    # username: sa
+    # password:
+    driver-class-name: org.postgresql.Driver
+    password: ${DATABASE_PASSWORD}
+    username: ${DATABASE_USERNAME}
+    url: ${DATABASE_URL}
   jpa:
     hibernate:
       ddl-auto: update
+  mail:
+    from: ${EMAIL_USERNAME}
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
