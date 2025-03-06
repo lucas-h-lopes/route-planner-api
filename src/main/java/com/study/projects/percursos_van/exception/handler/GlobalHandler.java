@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 public class GlobalHandler {
 
-    @ExceptionHandler({InvalidCredentialsException.class, InvalidRoleException.class})
+    @ExceptionHandler({InvalidCredentialsException.class, InvalidRoleException.class, MismatchedEmailException.class, ExpiredTokenException.class, InvalidTokenException.class})
     public ResponseEntity<ExceptionBody> badRequestException(Exception e, HttpServletRequest request) {
         log.info("Exceção bad request lançada: ", e);
         return ResponseEntity.badRequest()
                 .body(new ExceptionBody(request, HttpStatus.BAD_REQUEST, e.getMessage(), e));
     }
 
-    @ExceptionHandler({DuplicatedEmailException.class, DuplicatedCpfException.class, DuplicatedCnhException.class})
+    @ExceptionHandler({DuplicatedEmailException.class, DuplicatedCpfException.class, DuplicatedCnhException.class, DuplicatedTokenException.class})
     public ResponseEntity<ExceptionBody> conflictException(Exception e, HttpServletRequest request) {
         log.info("Exceção conflict lançada: ", e);
         return ResponseEntity.badRequest()
@@ -29,7 +29,7 @@ public class GlobalHandler {
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ExceptionBody> notFoundException(NotFoundException e, HttpServletRequest request){
+    public ResponseEntity<ExceptionBody> notFoundException(NotFoundException e, HttpServletRequest request) {
         log.info("Exceção not found lançada: ", e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value())
                 .body(new ExceptionBody(request, HttpStatus.NOT_FOUND, e.getMessage(), e));
@@ -47,5 +47,12 @@ public class GlobalHandler {
         log.info("Exceção validation lançada: ", e);
         return ResponseEntity.badRequest()
                 .body(new ExceptionBody(request, HttpStatus.BAD_REQUEST, "Erro de validação", e));
+    }
+
+    @ExceptionHandler({FailedEmailCreationException.class, Exception.class})
+    public ResponseEntity<ExceptionBody> serverErrorException(Exception e, HttpServletRequest request) {
+        log.info("Exceção internal server error lançada: ", e);
+        return ResponseEntity.internalServerError()
+                .body(new ExceptionBody(request, HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e));
     }
 }
