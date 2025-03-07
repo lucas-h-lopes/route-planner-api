@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,16 @@ public class EmailChangeTokenService {
         }catch (DataIntegrityViolationException e){
             throw new DuplicatedTokenException("Token gerado já cadastrado no sistema");
         }
+    }
+
+    public EmailChangeToken prepareChangeToken(User user, String newEmail){
+        EmailChangeToken changeToken = new EmailChangeToken();
+        changeToken.setToken(UUID.randomUUID().toString());
+        changeToken.setUser(userRepository.findByEmail(user.getEmail()).get());
+        changeToken.setNewEmail(newEmail);
+        changeToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+
+        return changeToken;
     }
 
     @Transactional

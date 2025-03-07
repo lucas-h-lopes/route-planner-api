@@ -1,11 +1,36 @@
 package com.study.projects.percursos_van.service;
 
+import com.study.projects.percursos_van.model.User;
+import com.study.projects.percursos_van.model.enums.EmailTemplate;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class EmailTemplateService {
 
-    public String loadConfirmationHTML(String fullName, String url) {
+    @Value("${url.base-url.dev}")
+    private String baseUrl;
+
+    @Value("${url.resource.confirmation}")
+    private String confirmationResourceUrl;
+
+    private final EmailChangeTokenService emailChangeTokenService;
+
+    public String getTemplate(EmailTemplate template, User user){
+        if(template.equals(EmailTemplate.CHANGE_EMAIL)){
+            return loadConfirmationHTML(user);
+        }
+        return "Template informado não existe";
+    }
+
+    private String loadConfirmationHTML(User user) {
+        String url = this.baseUrl + confirmationResourceUrl + "?token=" +
+                emailChangeTokenService.findByNearestExpiringDateList(
+                                emailChangeTokenService.findByUser(user))
+                        .getToken();
+
             return String.format("""
                     <html>
                     <head>
@@ -77,6 +102,6 @@ public class EmailTemplateService {
                         </div>
                     </body>
                     </html>
-                    """, fullName.split(" ")[0], url);
+                    """, user.getFullName().split(" ")[0], url);
         }
 }

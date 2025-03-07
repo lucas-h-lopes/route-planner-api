@@ -2,7 +2,9 @@ package com.study.projects.percursos_van.service;
 
 import com.study.projects.percursos_van.exception.*;
 import com.study.projects.percursos_van.model.Driver;
+import com.study.projects.percursos_van.model.EmailChangeToken;
 import com.study.projects.percursos_van.model.User;
+import com.study.projects.percursos_van.model.enums.EmailTemplate;
 import com.study.projects.percursos_van.model.enums.Role;
 import com.study.projects.percursos_van.repository.DriverRepository;
 import com.study.projects.percursos_van.repository.UserRepository;
@@ -26,6 +28,7 @@ public class UserService {
     private final DriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final EmailChangeTokenService emailChangeTokenService;
 
     @Transactional
     public User insert(User user) {
@@ -69,6 +72,7 @@ public class UserService {
         return userRepository.findAll(example);
     }
 
+
     @Transactional
     public void updateEmail(String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser){
         if(!newEmail.equalsIgnoreCase(confirmationEmail)){
@@ -83,7 +87,10 @@ public class UserService {
             throw new DuplicatedEmailException("Já existe um usuário com este e-mail");
         }
 
-        emailService.sendWithEmailChange(authenticatedUser, newEmail);
+        EmailChangeToken changeToken = emailChangeTokenService.prepareChangeToken(authenticatedUser, newEmail);
+        emailChangeTokenService.insert(changeToken);
+
+        emailService.send(newEmail, authenticatedUser, EmailTemplate.CHANGE_EMAIL);
     }
 
     @Transactional(readOnly = true) 

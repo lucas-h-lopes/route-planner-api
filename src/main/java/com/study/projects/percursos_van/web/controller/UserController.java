@@ -9,6 +9,7 @@ import com.study.projects.percursos_van.web.controller.dto.user.UserUpdateEmailD
 import com.study.projects.percursos_van.web.mapper.user.UserMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
