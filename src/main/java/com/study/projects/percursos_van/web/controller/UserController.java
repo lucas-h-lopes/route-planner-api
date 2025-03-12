@@ -2,14 +2,19 @@ package com.study.projects.percursos_van.web.controller;
 
 import com.study.projects.percursos_van.jwt.JwtUserDetails;
 import com.study.projects.percursos_van.model.User;
+import com.study.projects.percursos_van.repository.projection.UserProjection;
 import com.study.projects.percursos_van.service.UserService;
+import com.study.projects.percursos_van.web.controller.dto.pageable.PageableDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserCreateDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserResponseDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserUpdateEmailDTO;
+import com.study.projects.percursos_van.web.mapper.page.PageableMapper;
 import com.study.projects.percursos_van.web.mapper.user.UserMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -50,9 +55,13 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<List<UserResponseDTO>> findAll(@RequestParam(required = false, name = "fullname") String fullName, @RequestParam(required = false, name = "role") String role){
-        List<User> users = userService.findAll(fullName, role);
-        return ResponseEntity.ok(UserMapper.toResponseList(users));
+    public ResponseEntity<PageableDTO> findAll(@PageableDefault(size = 5, sort = "id") Pageable pageable,
+                                                         @RequestParam(required = false, name = "fname") String fullName,
+                                                         @RequestParam(required = false, name = "role") String role){
+        Page<UserProjection> projection = userService.findAllPageable(pageable, fullName, role);
+
+        return ResponseEntity.ok(
+                PageableMapper.toPageableDTO(projection));
     }
 
     @GetMapping("/personal-info")

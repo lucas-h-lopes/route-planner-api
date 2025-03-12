@@ -8,10 +8,14 @@ import com.study.projects.percursos_van.model.enums.EmailTemplate;
 import com.study.projects.percursos_van.model.enums.Role;
 import com.study.projects.percursos_van.repository.DriverRepository;
 import com.study.projects.percursos_van.repository.UserRepository;
+import com.study.projects.percursos_van.repository.projection.UserProjection;
+import com.study.projects.percursos_van.repository.projection.UserProjectionImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,6 +95,26 @@ public class UserService {
         emailChangeTokenService.insert(changeToken);
 
         emailService.send(newEmail, authenticatedUser, EmailTemplate.CHANGE_EMAIL);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserProjection> findAllPageable(Pageable pageable, String name, String role){
+        User user = new User();
+        user.setFullName(name);
+        if(role != null){
+            UserRoleValidator.validateUserRole(role);
+            user.setRole(Role.valueOf(role.toUpperCase()));
+        }
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreNullValues()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase();
+
+        Example<User> userExample = Example.of(user,matcher);
+
+        Page<User> userPage = userRepository.findAll(userExample, pageable);
+
+        return userPage.map(UserProjectionImpl::new);
     }
 
     @Transactional(readOnly = true) 
