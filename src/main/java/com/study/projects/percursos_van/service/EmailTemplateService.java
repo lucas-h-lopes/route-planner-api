@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EmailTemplateService {
 
-    @Value("${url.base-url.dev}")
+    @Value("${url.base}")
     private String baseUrl;
 
     @Value("${url.resource.confirmation}")

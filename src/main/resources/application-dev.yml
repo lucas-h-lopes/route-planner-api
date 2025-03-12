@@ -4,9 +4,7 @@ security:
     signature: ${SIGNATURE}
 
 url:
-  base-url:
-    dev: http://localhost:8080
-    prod:
+  base: http://localhost:8080
   resource:
     confirmation: /api/v1/confirmation
 
@@ -17,14 +15,10 @@ spring:
       path: /h2
   datasource:
     name: rotas_db
-    #url: jdbc:h2:mem:routes_test_db
-    # driver-class-name: org.h2.Driver
-    # username: sa
-    # password:
-    driver-class-name: org.postgresql.Driver
-    password: ${DATABASE_PASSWORD}
-    username: ${DATABASE_USERNAME}
-    url: ${DATABASE_URL}
+    url: jdbc:h2:mem:routes_test_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
   jpa:
     hibernate:
       ddl-auto: update
