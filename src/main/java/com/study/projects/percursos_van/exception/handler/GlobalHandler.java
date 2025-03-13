@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 public class GlobalHandler {
 
-    @ExceptionHandler({InvalidCredentialsException.class, InvalidRoleException.class, MismatchedEmailException.class, ExpiredTokenException.class, InvalidTokenException.class})
+    @ExceptionHandler({InvalidCredentialsException.class, InvalidRoleException.class, MismatchedEmailException.class, ExpiredTokenException.class, InvalidTokenException.class, MismatchedPasswordException.class})
     public ResponseEntity<ExceptionBody> badRequestException(Exception e, HttpServletRequest request) {
         log.info("Exceção bad request lançada: ", e);
         return ResponseEntity.badRequest()

@@ -56,15 +56,15 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User findById(Integer id){
+    public User findById(Integer id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Usuário com id '%d' não foi encontrado no sistema", id)));
     }
 
     @Transactional(readOnly = true)
-    public List<User> findAll(String fullName, String role){
+    public List<User> findAll(String fullName, String role) {
         User user = new User();
-        if(role != null) {
+        if (role != null) {
             UserRoleValidator.validateUserRole(role);
             user.setRole(Role.valueOf(role.toUpperCase()));
         }
@@ -80,16 +80,16 @@ public class UserService {
 
 
     @Transactional
-    public void requestEmailChange (String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser){
-        if(!newEmail.equalsIgnoreCase(confirmationEmail)){
+    public void requestEmailChange(String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser) {
+        if (!newEmail.equalsIgnoreCase(confirmationEmail)) {
             throw new MismatchedEmailException("Os e-mails não conferem");
         }
 
-        if(!passwordEncoder.matches(actualPassword, authenticatedUser.getPassword())){
+        if (!passwordEncoder.matches(actualPassword, authenticatedUser.getPassword())) {
             throw new InvalidCredentialsException("As credenciais não conferem");
         }
 
-        if(userRepository.existsByEmail(newEmail)){
+        if (userRepository.existsByEmail(newEmail)) {
             throw new DuplicatedEmailException("Já existe um usuário com este e-mail");
         }
 
@@ -99,11 +99,25 @@ public class UserService {
         emailService.send(newEmail, authenticatedUser, EmailTemplate.ACCOUNT_EMAIL_CHANGE_CONFIRMATION, "Confirmação de alteração de e-mail");
     }
 
+    @Transactional
+    public void updatePassword(String currentPassword, String newPassword, String confirmationPassword, User user) {
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new InvalidCredentialsException("Senha atual incorreta");
+        }
+
+        if (!newPassword.equals(confirmationPassword)) {
+            throw new MismatchedPasswordException("Nova senha e confirmação de senha devem ser iguais");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     @Transactional(readOnly = true)
-    public Page<UserProjection> findAllPageable(Pageable pageable, String name, String role){
+    public Page<UserProjection> findAllPageable(Pageable pageable, String name, String role) {
         User user = new User();
         user.setFullName(name);
-        if(role != null){
+        if (role != null) {
             UserRoleValidator.validateUserRole(role);
             user.setRole(Role.valueOf(role.toUpperCase()));
         }
@@ -112,7 +126,7 @@ public class UserService {
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
                 .withIgnoreCase();
 
-        Example<User> userExample = Example.of(user,matcher);
+        Example<User> userExample = Example.of(user, matcher);
 
         Page<User> userPage = userRepository.findAll(userExample, pageable);
 
@@ -120,20 +134,20 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteById(Integer id){
+    public void deleteById(Integer id) {
         findById(id);
         userRepository.deleteById(id);
     }
 
     @Transactional
-    public void requestAccountDeletion(User user){
+    public void requestAccountDeletion(User user) {
         AccountDeletionToken deletionToken = accountDeletionTokenService.prepareToken(user);
         accountDeletionTokenService.insert(deletionToken);
 
         emailService.send(user.getEmail(), user, EmailTemplate.ACCOUNT_DELETION_CONFIRMATION, "Confirmação de exclusão de conta");
     }
 
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Usuário '" + email + "' não foi encontrado no sistema"));
