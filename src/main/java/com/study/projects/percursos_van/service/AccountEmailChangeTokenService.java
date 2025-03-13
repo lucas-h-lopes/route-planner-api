@@ -4,9 +4,9 @@ import com.study.projects.percursos_van.exception.DuplicatedTokenException;
 import com.study.projects.percursos_van.exception.ExpiredTokenException;
 import com.study.projects.percursos_van.exception.InvalidTokenException;
 import com.study.projects.percursos_van.exception.NotFoundException;
-import com.study.projects.percursos_van.model.EmailChangeToken;
+import com.study.projects.percursos_van.model.AccountEmailChangeToken;
 import com.study.projects.percursos_van.model.User;
-import com.study.projects.percursos_van.repository.EmailChangeTokenRepository;
+import com.study.projects.percursos_van.repository.AccountEmailChangeTokenRepository;
 import com.study.projects.percursos_van.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,13 +20,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class EmailChangeTokenService {
+public class AccountEmailChangeTokenService {
 
-    private final EmailChangeTokenRepository repository;
+    private final AccountEmailChangeTokenRepository repository;
     private final UserRepository userRepository;
 
     @Transactional
-    public EmailChangeToken insert(EmailChangeToken entity){
+    public AccountEmailChangeToken insert(AccountEmailChangeToken entity){
         try{
             return repository.save(entity);
         }catch (DataIntegrityViolationException e){
@@ -34,8 +34,8 @@ public class EmailChangeTokenService {
         }
     }
 
-    public EmailChangeToken prepareChangeToken(User user, String newEmail){
-        EmailChangeToken changeToken = new EmailChangeToken();
+    public AccountEmailChangeToken prepareChangeToken(User user, String newEmail){
+        AccountEmailChangeToken changeToken = new AccountEmailChangeToken();
         changeToken.setToken(UUID.randomUUID().toString());
         changeToken.setUser(userRepository.findByEmail(user.getEmail()).get());
         changeToken.setNewEmail(newEmail);
@@ -44,46 +44,33 @@ public class EmailChangeTokenService {
         return changeToken;
     }
 
-    @Transactional
-    public void changeUserEmail(User user, EmailChangeToken changeToken){
-        isTokenValid(changeToken);
-        user.setEmail(changeToken.getNewEmail());
-        userRepository.save(user);
-        List<EmailChangeToken> allChangeTokens = findByUser(user);
-
-        deleteAll(allChangeTokens);
-    }
-
     @Transactional(readOnly = true)
-    public EmailChangeToken findByToken(String token){
+    public AccountEmailChangeToken findByToken(String token){
         return repository.findByToken(token)
                 .orElseThrow(() -> new InvalidTokenException(String.format("O token informado '%s'é inválido", token)));
     }
 
     @Transactional(readOnly = true)
-    public List<EmailChangeToken> findByUser(User user){
+    public List<AccountEmailChangeToken> findByUser(User user){
         return repository.findByUser(user);
     }
 
     @Transactional(readOnly = true)
-    public EmailChangeToken findByNearestExpiringDateList(List<EmailChangeToken> changeTokenList){
-        return changeTokenList
+    public AccountEmailChangeToken findByNearestExpiringDate(User user){
+        return repository.findByUser(user)
                 .stream()
                 .filter(x -> x.getExpiresAt().isAfter(LocalDateTime.now()))
-                .max(Comparator.comparing(EmailChangeToken::getExpiresAt))
+                .max(Comparator.comparing(AccountEmailChangeToken::getExpiresAt))
                 .orElseThrow(() -> new NotFoundException("Não foram encontrados tokens para o usuário"));
     }
 
-    @Transactional(readOnly = true)
-    public boolean isTokenValid(EmailChangeToken changeToken){
-        if(changeToken.getExpiresAt().isBefore(LocalDateTime.now())){
-            throw new ExpiredTokenException("O token está expirado, solicite um novo token para prosseguir");
-        }
-        return true;
+    @Transactional
+    public void validateToken(AccountEmailChangeToken token){
+        token.validateToken();
     }
 
     @Transactional
-    public void deleteAll(List<EmailChangeToken> changeTokenList){
+    public void deleteAll(List<AccountEmailChangeToken> changeTokenList){
         repository.deleteAll(changeTokenList);
     }
 }

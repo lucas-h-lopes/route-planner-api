@@ -6,8 +6,8 @@ security:
 url:
   base: http://localhost:8080
   resource:
-    confirmation: /api/v1/confirmation
-
+    confirmation: /api/v1/account/email-confirmation
+    delete: /api/v1/account/delete
 spring:
   h2:
     console:

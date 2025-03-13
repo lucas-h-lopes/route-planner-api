@@ -2,6 +2,7 @@ package com.study.projects.percursos_van.config;
 
 import com.study.projects.percursos_van.jwt.JwtEntryPoint;
 import com.study.projects.percursos_van.jwt.JwtRequestFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,6 +25,12 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @EnableWebMvc
 public class SecurityConfig {
 
+    @Value("${url.resource.confirmation}")
+    private String emailConfirmationURI;
+
+    @Value("${url.resource.delete}")
+    private String accountDeleteURI;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
         return security
@@ -34,7 +41,8 @@ public class SecurityConfig {
                 .exceptionHandling(x -> x.authenticationEntryPoint(new JwtEntryPoint()))
                 .authorizeHttpRequests(x -> x.requestMatchers(
                                 antMatcher(HttpMethod.POST, "/api/v1/auth"),
-                                antMatcher(HttpMethod.GET, "/api/v1/confirmation"),
+                                antMatcher(HttpMethod.GET, emailConfirmationURI),
+                                antMatcher(HttpMethod.GET, accountDeleteURI),
                                 antMatcher("/h2/**"))
                         .permitAll()
                         .anyRequest().authenticated())

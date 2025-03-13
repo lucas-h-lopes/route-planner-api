@@ -1,8 +1,9 @@
 package com.study.projects.percursos_van.service;
 
 import com.study.projects.percursos_van.exception.*;
+import com.study.projects.percursos_van.model.AccountDeletionToken;
 import com.study.projects.percursos_van.model.Driver;
-import com.study.projects.percursos_van.model.EmailChangeToken;
+import com.study.projects.percursos_van.model.AccountEmailChangeToken;
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.model.enums.EmailTemplate;
 import com.study.projects.percursos_van.model.enums.Role;
@@ -32,7 +33,8 @@ public class UserService {
     private final DriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
-    private final EmailChangeTokenService emailChangeTokenService;
+    private final AccountEmailChangeTokenService accountEmailChangeTokenService;
+    private final AccountDeletionTokenService accountDeletionTokenService;
 
     @Transactional
     public User insert(User user) {
@@ -78,7 +80,7 @@ public class UserService {
 
 
     @Transactional
-    public void updateEmail(String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser){
+    public void requestEmailChange (String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser){
         if(!newEmail.equalsIgnoreCase(confirmationEmail)){
             throw new MismatchedEmailException("Os e-mails não conferem");
         }
@@ -91,10 +93,10 @@ public class UserService {
             throw new DuplicatedEmailException("Já existe um usuário com este e-mail");
         }
 
-        EmailChangeToken changeToken = emailChangeTokenService.prepareChangeToken(authenticatedUser, newEmail);
-        emailChangeTokenService.insert(changeToken);
+        AccountEmailChangeToken changeToken = accountEmailChangeTokenService.prepareChangeToken(authenticatedUser, newEmail);
+        accountEmailChangeTokenService.insert(changeToken);
 
-        emailService.send(newEmail, authenticatedUser, EmailTemplate.CHANGE_EMAIL);
+        emailService.send(newEmail, authenticatedUser, EmailTemplate.ACCOUNT_EMAIL_CHANGE_CONFIRMATION, "Confirmação de alteração de e-mail");
     }
 
     @Transactional(readOnly = true)
@@ -115,6 +117,20 @@ public class UserService {
         Page<User> userPage = userRepository.findAll(userExample, pageable);
 
         return userPage.map(UserProjectionImpl::new);
+    }
+
+    @Transactional
+    public void deleteById(Integer id){
+        findById(id);
+        userRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteByAuthenticated(User user){
+        AccountDeletionToken deletionToken = accountDeletionTokenService.prepareToken(user);
+        accountDeletionTokenService.insert(deletionToken);
+
+        emailService.send(user.getEmail(), user, EmailTemplate.ACCOUNT_DELETION_CONFIRMATION, "Confirmação de exclusão de conta");
     }
 
     @Transactional(readOnly = true) 
