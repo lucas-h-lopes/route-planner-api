@@ -1,5 +1,5 @@
 package com.study.projects.percursos_van.model.enums;
 
 public enum EmailTemplate {
-    CHANGE_EMAIL
+    ACCOUNT_EMAIL_CHANGE_CONFIRMATION, ACCOUNT_DELETION_CONFIRMATION
 }

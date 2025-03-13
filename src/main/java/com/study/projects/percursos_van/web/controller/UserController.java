@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -56,8 +55,8 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<PageableDTO> findAll(@PageableDefault(size = 5, sort = "id") Pageable pageable,
-                                                         @RequestParam(required = false, name = "fname") String fullName,
-                                                         @RequestParam(required = false, name = "role") String role){
+                                               @RequestParam(required = false, name = "fname") String fullName,
+                                               @RequestParam(required = false, name = "role") String role) {
         Page<UserProjection> projection = userService.findAllPageable(pageable, fullName, role);
 
         return ResponseEntity.ok(
@@ -65,18 +64,34 @@ public class UserController {
     }
 
     @GetMapping("/personal-info")
-    @PreAuthorize("hasAnyAuthority('DRIVER', 'STUDENT')")
-    public ResponseEntity<UserResponseDTO> getPersonalInfo(@AuthenticationPrincipal JwtUserDetails details){
+    @PreAuthorize("hasAnyAuthority('DRIVER', 'STUDENT', 'ADMIN')")
+    public ResponseEntity<UserResponseDTO> getByAuthenticated(@AuthenticationPrincipal JwtUserDetails details) {
         User user = userService.findById(details.getId());
         return ResponseEntity.ok(UserMapper.toResponse(user));
     }
 
     @PutMapping("/personal-info/email")
-    @PreAuthorize("hasAnyAuthority('DRIVER', 'STUDENT')")
-    public ResponseEntity<Map<String,String>> updateEmail(@RequestBody @Valid UserUpdateEmailDTO dto, @AuthenticationPrincipal JwtUserDetails details){
+    @PreAuthorize("hasAnyAuthority('DRIVER', 'STUDENT', 'ADMIN')")
+    public ResponseEntity<Map<String, String>> updateEmail(@RequestBody @Valid UserUpdateEmailDTO dto, @AuthenticationPrincipal JwtUserDetails details) {
         User authenticatedUser = userService.findById(details.getId());
-        userService.updateEmail(dto.newEmail(), dto.confirmationEmail(), dto.password(), authenticatedUser);
+        userService.requestEmailChange(dto.newEmail(), dto.confirmationEmail(), dto.password(), authenticatedUser);
         return ResponseEntity
                 .ok(Map.of("message", "Link de confirmação enviado para o seu novo e-mail"));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> deleteById(@PathVariable Integer id) {
+        userService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/personal-info")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STUDENT','DRIVER')")
+    public ResponseEntity<Map<String,String>> deleteByAuthenticated(@AuthenticationPrincipal JwtUserDetails details){
+        User user = userService.findById(details.getId());
+        userService.requestAccountDeletion(user);
+        return ResponseEntity.ok(
+                Map.of("message", "Link de confirmação de exclusão da conta foi enviado para o seu e-mail"));
     }
 }

@@ -24,11 +24,11 @@ public class EmailService {
     @Value("${spring.mail.from}")
     private String from;
 
-    private MimeMessage createMimeMessage(String recipient, String text) {
+    private MimeMessage createMimeMessage(String recipient, String text, String subject) {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-            mimeMessageHelper.setSubject("Confirmação de alteração de e-mail");
+            mimeMessageHelper.setSubject(subject);
             mimeMessageHelper.setTo(recipient);
             mimeMessageHelper.setFrom(from);
             mimeMessageHelper.setText(text, true);
@@ -41,9 +41,9 @@ public class EmailService {
     }
 
     @Transactional
-    public void send(String recipient, User user, EmailTemplate template) {
+    public void send(String recipient, User user, EmailTemplate template, String subject) {
         try {
-            MimeMessage mimeMessage = createMimeMessage(recipient, emailTemplateService.getTemplate(template, user));
+            MimeMessage mimeMessage = createMimeMessage(recipient, emailTemplateService.getTemplate(template, user), subject);
             javaMailSender.send(mimeMessage);
         } catch (Exception e) {
             e.printStackTrace();
