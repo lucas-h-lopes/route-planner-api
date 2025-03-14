@@ -23,13 +23,13 @@ public class AccountService {
 
     @Transactional
     public void updateUserEmail(User user, AccountEmailChangeToken changeToken) {
-        if(!changeToken.equals(accountEmailChangeTokenService.findByNearestExpiringDate(user))){
+        if (!changeToken.equals(accountEmailChangeTokenService.findByNearestExpiringDate(user))) {
             throw new InvalidTokenException("Utilize o token mais recente enviado ao seu e-mail");
         }
         accountEmailChangeTokenService.validateToken(changeToken);
         user.setEmail(changeToken.getNewEmail());
         userRepository.save(user);
-        List<AccountEmailChangeToken> allChangeTokens = accountEmailChangeTokenService.findByUser(user);
+        List<AccountEmailChangeToken> allChangeTokens = accountEmailChangeTokenService.findAllByUser(user);
 
         accountEmailChangeTokenService.deleteAll(allChangeTokens);
     }
@@ -42,10 +42,14 @@ public class AccountService {
         accountDeletionTokenService.validateToken(deletionToken);
 
         List<AccountDeletionToken> allTokens = accountDeletionTokenService.findAllByUser(user);
-        accountDeletionTokenService.deleteAll(allTokens);
+        if (!allTokens.isEmpty()) {
+            accountDeletionTokenService.deleteAll(allTokens);
+        }
 
-        List<AccountEmailChangeToken> allChangeTokens = accountEmailChangeTokenService.findByUser(user);
-        accountEmailChangeTokenService.deleteAll(allChangeTokens);
+        List<AccountEmailChangeToken> allChangeTokens = accountEmailChangeTokenService.findAllByUser(user);
+        if (!allChangeTokens.isEmpty()) {
+            accountEmailChangeTokenService.deleteAll(allChangeTokens);
+        }
 
         if (user.getRole().equals(Role.DRIVER)) {
             driverService.deleteByUser(user);

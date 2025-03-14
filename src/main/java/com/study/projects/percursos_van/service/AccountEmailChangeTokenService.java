@@ -1,13 +1,11 @@
 package com.study.projects.percursos_van.service;
 
 import com.study.projects.percursos_van.exception.DuplicatedTokenException;
-import com.study.projects.percursos_van.exception.ExpiredTokenException;
 import com.study.projects.percursos_van.exception.InvalidTokenException;
 import com.study.projects.percursos_van.exception.NotFoundException;
 import com.study.projects.percursos_van.model.AccountEmailChangeToken;
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.repository.AccountEmailChangeTokenRepository;
-import com.study.projects.percursos_van.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -23,7 +21,6 @@ import java.util.UUID;
 public class AccountEmailChangeTokenService {
 
     private final AccountEmailChangeTokenRepository repository;
-    private final UserRepository userRepository;
 
     @Transactional
     public AccountEmailChangeToken insert(AccountEmailChangeToken entity){
@@ -37,7 +34,7 @@ public class AccountEmailChangeTokenService {
     public AccountEmailChangeToken prepareChangeToken(User user, String newEmail){
         AccountEmailChangeToken changeToken = new AccountEmailChangeToken();
         changeToken.setToken(UUID.randomUUID().toString());
-        changeToken.setUser(userRepository.findByEmail(user.getEmail()).get());
+        changeToken.setUser(user);
         changeToken.setNewEmail(newEmail);
         changeToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
 
@@ -51,26 +48,29 @@ public class AccountEmailChangeTokenService {
     }
 
     @Transactional(readOnly = true)
-    public List<AccountEmailChangeToken> findByUser(User user){
+    public List<AccountEmailChangeToken> findAllByUser(User user){
         return repository.findByUser(user);
     }
 
     @Transactional(readOnly = true)
     public AccountEmailChangeToken findByNearestExpiringDate(User user){
-        return repository.findByUser(user)
+        return findAllByUser(user)
                 .stream()
                 .filter(x -> x.getExpiresAt().isAfter(LocalDateTime.now()))
                 .max(Comparator.comparing(AccountEmailChangeToken::getExpiresAt))
                 .orElseThrow(() -> new NotFoundException("Não foram encontrados tokens para o usuário"));
     }
 
-    @Transactional
     public void validateToken(AccountEmailChangeToken token){
         token.validateToken();
     }
 
     @Transactional
     public void deleteAll(List<AccountEmailChangeToken> changeTokenList){
-        repository.deleteAll(changeTokenList);
+        try {
+            repository.deleteAll(changeTokenList);
+        }catch(Exception e){
+            throw new NotFoundException("O usuário não possui tokens");
+        }
     }
 }

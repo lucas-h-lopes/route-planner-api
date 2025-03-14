@@ -39,17 +39,20 @@ public class AccountDeletionTokenService {
         return token;
     }
 
+    @Transactional(readOnly = true)
     public AccountDeletionToken findByNearestExpirationDate(User user){
-        return repository.findByUser(user)
+        return findAllByUser(user)
                 .stream().filter(x -> x.getExpiresAt().isAfter(LocalDateTime.now()))
                 .max(Comparator.comparing(AccountDeletionToken::getExpiresAt))
                 .orElseThrow(() -> new NotFoundException("Não foram encontrados tokens para o usuário"));
     }
 
+    @Transactional(readOnly = true)
     public List<AccountDeletionToken> findAllByUser(User user){
         return repository.findByUser(user);
     }
 
+    @Transactional(readOnly = true)
     public AccountDeletionToken findByToken(String token){
         return repository.findByToken(token).orElseThrow(
                 () -> new InvalidTokenException(String.format("O token informado '%s'é inválido", token))

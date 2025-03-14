@@ -6,6 +6,7 @@ import com.study.projects.percursos_van.repository.projection.UserProjection;
 import com.study.projects.percursos_van.service.UserService;
 import com.study.projects.percursos_van.web.controller.dto.pageable.PageableDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserCreateDTO;
+import com.study.projects.percursos_van.web.controller.dto.user.UserPasswordDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserResponseDTO;
 import com.study.projects.percursos_van.web.controller.dto.user.UserUpdateEmailDTO;
 import com.study.projects.percursos_van.web.mapper.page.PageableMapper;
@@ -55,8 +56,7 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<PageableDTO> findAll(@PageableDefault(size = 5, sort = "id") Pageable pageable,
-                                               @RequestParam(required = false, name = "fname") String fullName,
-                                               @RequestParam(required = false, name = "role") String role) {
+                                               @RequestParam(required = false, name = "fname") String fullName,@RequestParam(required = false, name = "role") String role) {
         Page<UserProjection> projection = userService.findAllPageable(pageable, fullName, role);
 
         return ResponseEntity.ok(
@@ -90,8 +90,18 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('ADMIN','STUDENT','DRIVER')")
     public ResponseEntity<Map<String,String>> deleteByAuthenticated(@AuthenticationPrincipal JwtUserDetails details){
         User user = userService.findById(details.getId());
-        userService.deleteByAuthenticated(user);
+        userService.requestAccountDeletion(user);
         return ResponseEntity.ok(
                 Map.of("message", "Link de confirmação de exclusão da conta foi enviado para o seu e-mail"));
     }
+
+    @PutMapping("/personal-info")
+    @PreAuthorize("hasAnyAuthority('ADMIN','STUDENT','DRIVER')")
+    public ResponseEntity<Void> updatePassword(@RequestBody @Valid UserPasswordDTO requestBody, @AuthenticationPrincipal JwtUserDetails details){
+        User authenticatedUser = userService.findById(details.getId());
+        userService.updatePassword(requestBody.currentPassword(), requestBody.newPassword(), requestBody.confirmationPassword(), authenticatedUser);
+        return ResponseEntity
+                .noContent().build();
+    }
+
 }

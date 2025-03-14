@@ -38,6 +38,5 @@ public class AccountController {
 
         accountService.deleteUser(user, deleteToken);
         return ResponseEntity.ok("Conta excluída com sucesso!");
-        //TODO: esta dando erro - investigar
     }
 }
