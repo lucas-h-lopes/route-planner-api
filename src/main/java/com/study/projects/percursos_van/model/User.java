@@ -43,14 +43,6 @@ public class User implements Serializable {
     @Column(name = "role", nullable = false)
     private Role role;
 
-    public User(UserCreateDTO dto) {
-        this.fullName = dto.fullName();
-        this.email = dto.email();
-        this.password = dto.password();
-        this.role = Role.valueOf(dto.role().toUpperCase());
-        this.cpf = dto.cpf();
-    }
-
     @Column(name = "created_by")
     @CreatedBy
     private String createdBy;
@@ -63,4 +55,12 @@ public class User implements Serializable {
     @Column(name = "last_modified_at")
     @LastModifiedDate
     private LocalDateTime lastModifiedAt;
+
+    public User(UserCreateDTO dto) {
+        this.fullName = dto.fullName();
+        this.email = dto.email();
+        this.password = dto.password();
+        this.role = Role.valueOf(dto.role().toUpperCase());
+        this.cpf = dto.cpf();
+    }
 }
