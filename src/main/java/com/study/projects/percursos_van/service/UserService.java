@@ -10,7 +10,7 @@ import com.study.projects.percursos_van.model.enums.Role;
 import com.study.projects.percursos_van.repository.DriverRepository;
 import com.study.projects.percursos_van.repository.UserRepository;
 import com.study.projects.percursos_van.repository.projection.UserProjection;
-import com.study.projects.percursos_van.repository.projection.UserProjectionImpl;
+import com.study.projects.percursos_van.repository.projection.impl.UserProjectionImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
@@ -55,14 +55,14 @@ public class UserService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public User findById(Integer id){
+    @Transactional
+    public User findById(Integer id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Usuário com id '%d' não foi encontrado no sistema", id)));
     }
 
     @Transactional(readOnly = true)
-    public List<User> findAll(String fullName, String role){
+    public List<User> findAll(String fullName, String role) {
         User user = new User();
         if (role != null) {
             UserRoleValidator.validateUserRole(role);
@@ -81,7 +81,7 @@ public class UserService {
 
     @Transactional
     public void requestEmailChange(String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser) {
-        if (!newEmail.equalsIgnoreCase(confirmationEmail)){
+        if (!newEmail.equalsIgnoreCase(confirmationEmail)) {
             throw new MismatchedEmailException("Os e-mails não conferem");
         }
 
@@ -117,7 +117,7 @@ public class UserService {
     public Page<UserProjection> findAllPageable(Pageable pageable, String name, String role) {
         User user = new User();
         user.setFullName(name);
-        if (role != null){
+        if (role != null) {
             UserRoleValidator.validateUserRole(role);
             user.setRole(Role.valueOf(role.toUpperCase()));
         }
@@ -135,8 +135,25 @@ public class UserService {
 
     @Transactional
     public void deleteById(Integer id) {
-        findById(id);
-        userRepository.deleteById(id);
+        User user = findById(id);
+
+        List<AccountEmailChangeToken> allEmailChangeTokens =
+                accountEmailChangeTokenService.findAllByUser(user);
+
+        List<AccountDeletionToken> allDeletionTokens =
+                accountDeletionTokenService.findAllByUser(user);
+
+        if(!allEmailChangeTokens.isEmpty()){
+            accountEmailChangeTokenService.deleteAll(allEmailChangeTokens);
+        }
+
+        if(!allDeletionTokens.isEmpty()){
+            accountDeletionTokenService.deleteAll(allDeletionTokens);
+        }
+
+        deleteEntityByUserRole(user);
+
+        userRepository.delete(user);
     }
 
     @Transactional
@@ -186,8 +203,15 @@ public class UserService {
         }
     }
 
+    private void deleteEntityByUserRole(User user) {
+        if (user.getRole().equals(Role.DRIVER)) {
+            Driver driver = driverRepository.findByUser(user);
+            driverRepository.delete(driver);
+        }
+    }
+
     private void setToBlank(Driver driver) {
-        driver.setCnhCat(' ');
+        driver.setCnhCat(null);
         driver.setCnhExpiration(null);
     }
 }
