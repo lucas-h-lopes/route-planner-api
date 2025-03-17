@@ -29,7 +29,7 @@ public class Driver implements Serializable {
     private String cnh;
 
     @Column(name = "cnh_cat", length = 1)
-    private char cnhCat;
+    private Character cnhCat;
 
     @Column(name = "cnh_expiration")
     private LocalDate cnhExpiration;
