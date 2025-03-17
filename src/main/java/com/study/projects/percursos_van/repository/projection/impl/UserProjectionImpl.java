@@ -1,8 +1,9 @@
-package com.study.projects.percursos_van.repository.projection;
+package com.study.projects.percursos_van.repository.projection.impl;
 
 import com.study.projects.percursos_van.model.User;
+import com.study.projects.percursos_van.repository.projection.UserProjection;
 
-public class UserProjectionImpl implements UserProjection{
+public class UserProjectionImpl implements UserProjection {
     private final Integer id;
     private final String fullName;
     private final String cpf;
