@@ -1,6 +1,6 @@
 package com.study.projects.percursos_van.service;
 
-import com.study.projects.percursos_van.exception.FailedEmailCreationException;
+import com.study.projects.percursos_van.exception.FailedEntityCreationException;
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.model.enums.EmailTemplate;
 import jakarta.mail.MessagingException;
@@ -46,8 +46,7 @@ public class EmailService {
             MimeMessage mimeMessage = createMimeMessage(recipient, emailTemplateService.getTemplate(template, user), subject);
             javaMailSender.send(mimeMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new FailedEmailCreationException("Algo deu errado durante o envio do e-mail");
+            throw new FailedEntityCreationException("Algo deu errado durante o envio do e-mail");
         }
     }
 }

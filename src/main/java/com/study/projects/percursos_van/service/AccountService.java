@@ -24,7 +24,7 @@ public class AccountService {
     @Transactional
     public void updateUserEmail(User user, AccountEmailChangeToken changeToken) {
         if (!changeToken.equals(accountEmailChangeTokenService.findByNearestExpiringDate(user))) {
-            throw new InvalidTokenException("Utilize o token mais recente enviado ao seu e-mail");
+            throw new InvalidTokenException("Token inválido ou expirado");
         }
         accountEmailChangeTokenService.validateToken(changeToken);
         user.setEmail(changeToken.getNewEmail());
@@ -37,7 +37,7 @@ public class AccountService {
     @Transactional
     public void deleteUser(User user, AccountDeletionToken deletionToken) {
         if (!deletionToken.equals(accountDeletionTokenService.findByNearestExpirationDate(user))) {
-            throw new InvalidTokenException("Utilize o token mais recente enviado ao seu e-mail");
+            throw new InvalidTokenException("Token inválido ou expirado");
         }
         accountDeletionTokenService.validateToken(deletionToken);
 

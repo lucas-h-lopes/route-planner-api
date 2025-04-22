@@ -13,10 +13,10 @@ public class EmailTemplateService {
     @Value("${url.base}")
     private String baseUrl;
 
-    @Value("${url.resource.confirmation}")
+    @Value("${url.resource.account.confirm}")
     private String confirmationResourceUrl;
 
-    @Value("${url.resource.delete}")
+    @Value("${url.resource.account.delete}")
     private String deleteConfirmationResourceUrl;
 
     private final AccountEmailChangeTokenService accountEmailChangeTokenService;

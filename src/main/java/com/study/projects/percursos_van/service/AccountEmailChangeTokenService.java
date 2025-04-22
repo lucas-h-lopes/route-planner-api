@@ -27,7 +27,7 @@ public class AccountEmailChangeTokenService {
         try{
             return repository.save(entity);
         }catch (DataIntegrityViolationException e){
-            throw new DuplicatedTokenException("Token gerado já cadastrado no sistema");
+            throw new DuplicatedTokenException("Não foi possível gerar o token");
         }
     }
 
@@ -44,7 +44,7 @@ public class AccountEmailChangeTokenService {
     @Transactional(readOnly = true)
     public AccountEmailChangeToken findByToken(String token){
         return repository.findByToken(token)
-                .orElseThrow(() -> new InvalidTokenException(String.format("O token informado '%s'é inválido", token)));
+                .orElseThrow(() -> new InvalidTokenException("O token informado é inválido"));
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +58,7 @@ public class AccountEmailChangeTokenService {
                 .stream()
                 .filter(x -> x.getExpiresAt().isAfter(LocalDateTime.now()))
                 .max(Comparator.comparing(AccountEmailChangeToken::getExpiresAt))
-                .orElseThrow(() -> new NotFoundException("Não foram encontrados tokens para o usuário"));
+                .orElseThrow(() -> new NotFoundException("Nenhum token válido foi encontrado"));
     }
 
     public void validateToken(AccountEmailChangeToken token){
@@ -70,7 +70,7 @@ public class AccountEmailChangeTokenService {
         try {
             repository.deleteAll(changeTokenList);
         }catch(Exception e){
-            throw new NotFoundException("O usuário não possui tokens");
+            throw new NotFoundException("Nenhum token válido foi encontrado");
         }
     }
 }

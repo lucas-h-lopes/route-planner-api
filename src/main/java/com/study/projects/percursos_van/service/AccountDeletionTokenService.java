@@ -26,7 +26,7 @@ public class AccountDeletionTokenService {
         try{
             return repository.save(token);
         }catch(DataIntegrityViolationException e){
-            throw new DuplicatedTokenException("Token gerado já cadastrado no sistema");
+            throw new DuplicatedTokenException("Não foi possível gerar o token");
         }
     }
 
@@ -44,7 +44,7 @@ public class AccountDeletionTokenService {
         return findAllByUser(user)
                 .stream().filter(x -> x.getExpiresAt().isAfter(LocalDateTime.now()))
                 .max(Comparator.comparing(AccountDeletionToken::getExpiresAt))
-                .orElseThrow(() -> new NotFoundException("Não foram encontrados tokens para o usuário"));
+                .orElseThrow(() -> new NotFoundException("Nenhum token válido foi encontrado"));
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +55,7 @@ public class AccountDeletionTokenService {
     @Transactional(readOnly = true)
     public AccountDeletionToken findByToken(String token){
         return repository.findByToken(token).orElseThrow(
-                () -> new InvalidTokenException(String.format("O token informado '%s'é inválido", token))
+                () -> new InvalidTokenException("O token informado é inválido")
         );
     }
 
@@ -65,11 +65,11 @@ public class AccountDeletionTokenService {
     }
 
     public void deleteAll(List<AccountDeletionToken> allTokens) {
-        try{
-            repository.deleteAll(allTokens);
-        }catch(Exception e){
-            throw new NotFoundException("O usuário não possui tokens");
+        if (allTokens == null || allTokens.isEmpty()) {
+            throw new NotFoundException("Nenhum token foi encontrado para exclusão.");
         }
+
+        repository.deleteAll(allTokens);
     }
 }
 
