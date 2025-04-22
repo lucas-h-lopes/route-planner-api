@@ -1,10 +1,7 @@
 package com.study.projects.percursos_van.service;
 
 import com.study.projects.percursos_van.exception.*;
-import com.study.projects.percursos_van.model.AccountDeletionToken;
-import com.study.projects.percursos_van.model.AccountEmailChangeToken;
-import com.study.projects.percursos_van.model.Driver;
-import com.study.projects.percursos_van.model.User;
+import com.study.projects.percursos_van.model.*;
 import com.study.projects.percursos_van.model.enums.EmailTemplate;
 import com.study.projects.percursos_van.model.enums.Role;
 import com.study.projects.percursos_van.repository.DriverRepository;
@@ -41,43 +38,23 @@ public class UserService {
         try {
             boolean existsByEmail = userRepository.existsByEmail(user.getEmail());
             if (existsByEmail) {
-                throw new DuplicatedEmailException("Usuário '" + user.getEmail() + "' já está cadastrado no sistema");
+                throw new DuplicatedEmailException("Já existe uma conta associada a este e-mail");
             }
             formatAndSetFullName(user);
             formatAndSetEmail(user);
             encodeAndSetPassword(user);
 
-            insertEntityByUserRole(user);
             return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            e.printStackTrace();
-            throw new DuplicatedCpfException("CPF '" + user.getCpf() + "' já está cadastrado no sistema");
+            throw new DuplicatedCpfException("Não é possível concluir o cadastro com o CPF informado");
         }
     }
 
     @Transactional
     public User findById(Integer id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Usuário com id '%d' não foi encontrado no sistema", id)));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
     }
-
-    @Transactional(readOnly = true)
-    public List<User> findAll(String fullName, String role) {
-        User user = new User();
-        if (role != null) {
-            UserRoleValidator.validateUserRole(role);
-            user.setRole(Role.valueOf(role.toUpperCase()));
-        }
-        user.setFullName(fullName);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withIgnoreCase()
-                .withIgnoreNullValues()
-                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
-
-        Example<User> example = Example.of(user, matcher);
-        return userRepository.findAll(example);
-    }
-
 
     @Transactional
     public void requestEmailChange(String newEmail, String confirmationEmail, String actualPassword, User authenticatedUser) {
@@ -90,7 +67,7 @@ public class UserService {
         }
 
         if (userRepository.existsByEmail(newEmail)) {
-            throw new DuplicatedEmailException("Já existe um usuário com este e-mail");
+            throw new DuplicatedEmailException("Já existe uma conta associada a este e-mail");
         }
 
         AccountEmailChangeToken changeToken = accountEmailChangeTokenService.prepareChangeToken(authenticatedUser, newEmail);
@@ -143,11 +120,11 @@ public class UserService {
         List<AccountDeletionToken> allDeletionTokens =
                 accountDeletionTokenService.findAllByUser(user);
 
-        if(!allEmailChangeTokens.isEmpty()){
+        if (!allEmailChangeTokens.isEmpty()) {
             accountEmailChangeTokenService.deleteAll(allEmailChangeTokens);
         }
 
-        if(!allDeletionTokens.isEmpty()){
+        if (!allDeletionTokens.isEmpty()) {
             accountDeletionTokenService.deleteAll(allDeletionTokens);
         }
 
@@ -167,7 +144,16 @@ public class UserService {
     @Transactional(readOnly = true)
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Usuário '" + email + "' não foi encontrado no sistema"));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
+    }
+
+    @Transactional
+    public void updateUser(User user){
+        try {
+            userRepository.save(user);
+        }catch(Exception e){
+            throw new FailedEntityCreationException("Algo de errado durante a atualização de usuário");
+        }
     }
 
     @Transactional(readOnly = true)
@@ -194,15 +180,6 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(password));
     }
 
-    private void insertEntityByUserRole(User user) {
-        if (user.getRole().equals(Role.DRIVER)) {
-            Driver driver = new Driver();
-            driver.setUser(user);
-            setToBlank(driver);
-            driverRepository.save(driver);
-        }
-    }
-
     private void deleteEntityByUserRole(User user) {
         if (user.getRole().equals(Role.DRIVER)) {
             Driver driver = driverRepository.findByUser(user);
@@ -210,8 +187,4 @@ public class UserService {
         }
     }
 
-    private void setToBlank(Driver driver) {
-        driver.setCnhCat(null);
-        driver.setCnhExpiration(null);
-    }
 }

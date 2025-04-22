@@ -2,6 +2,7 @@ package com.study.projects.percursos_van.repository.projection.impl;
 
 import com.study.projects.percursos_van.model.User;
 import com.study.projects.percursos_van.repository.projection.UserProjection;
+import com.study.projects.percursos_van.web.mapper.phone.PhoneMapper;
 
 public class UserProjectionImpl implements UserProjection {
     private final Integer id;
@@ -9,13 +10,20 @@ public class UserProjectionImpl implements UserProjection {
     private final String cpf;
     private final String email;
     private final String role;
+    private final String[] phones;
 
-    public UserProjectionImpl(User user){
+    public UserProjectionImpl(User user) {
         this.id = user.getId();
         this.fullName = user.getFullName();
         this.email = user.getEmail();
         this.role = user.getRole().name();
         this.cpf = user.getCpf();
+        this.phones = PhoneMapper.getNumbersFromPhonesArr(user.getPhones());
+    }
+
+    @Override
+    public String[] getPhones() {
+        return this.phones;
     }
 
     @Override

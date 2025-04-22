@@ -16,8 +16,6 @@ public record UserCreateDTO(
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
                 message = "A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais")
         String password,
-        @NotBlank(message = "O papel é obrigatório")
-        String role,
         @NotBlank(message = "O CPF é obrigatório")
         @Size(min = 11, max = 11, message = "O CPF deve conter exatamente 11 dígitos (sem pontuação)")
         @CPF

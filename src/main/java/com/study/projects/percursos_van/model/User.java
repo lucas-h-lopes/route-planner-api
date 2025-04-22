@@ -1,7 +1,7 @@
 package com.study.projects.percursos_van.model;
 
-import com.study.projects.percursos_van.web.controller.dto.user.UserCreateDTO;
 import com.study.projects.percursos_van.model.enums.Role;
+import com.study.projects.percursos_van.web.controller.dto.user.UserCreateDTO;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -12,6 +12,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -55,12 +57,21 @@ public class User implements Serializable {
     @Column(name = "last_modified_at")
     @LastModifiedDate
     private LocalDateTime lastModifiedAt;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Phone> phones = new ArrayList<>();
+
+    public void addPhone(Phone phone) {
+        this.phones.addFirst(phone);
+    }
+
+    public void addManyPhones(List<Phone> phones) {
+        this.phones.addAll(phones);
+    }
 
     public User(UserCreateDTO dto) {
         this.fullName = dto.fullName();
         this.email = dto.email();
         this.password = dto.password();
-        this.role = Role.valueOf(dto.role().toUpperCase());
         this.cpf = dto.cpf();
     }
 }

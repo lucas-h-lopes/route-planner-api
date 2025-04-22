@@ -78,6 +78,4 @@ public class DriverService {
         Driver driver = getByUser(user);
         driverRepository.delete(driver);
     }
-
-
 }
