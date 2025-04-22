@@ -34,7 +34,7 @@ public class Driver implements Serializable {
     @Column(name = "cnh_expiration")
     private LocalDate cnhExpiration;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 

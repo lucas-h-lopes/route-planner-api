@@ -3,17 +3,18 @@ package com.study.projects.percursos_van.repository.projection.impl;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.study.projects.percursos_van.model.Driver;
 import com.study.projects.percursos_van.repository.projection.DriverProjection;
+import com.study.projects.percursos_van.web.mapper.phone.PhoneMapper;
 
 import java.time.LocalDate;
 
 public class DriverProjectionImpl implements DriverProjection {
 
-    private Integer id;
-    private String cnh;
-    private Character cnhCat;
+    private final Integer id;
+    private final String cnh;
+    private final Character cnhCat;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate cnhExpiration;
-    private Integer userId;
+    private final LocalDate cnhExpiration;
+    private final Integer userId;
 
     @Override
     public Integer getId() {

@@ -22,65 +22,62 @@ public class DriverService {
 
     private final DriverRepository driverRepository;
     private final UserService userService;
+    private final PhoneService phoneService;
 
     @Transactional
     public Driver insert(Driver driver) {
         try {
-            if(driver.getCnhCat() != null){
+            userService.insert(driver.getUser());
+            User user = driver.getUser();
+
+            if (driver.getCnhCat() != null) {
                 driver.setCnhCat(Character.toUpperCase(driver.getCnhCat()));
             }
+            phoneService.insertMany(user.getPhones().getFirst(), phoneService.getOtherPhones(user));
             return driverRepository.save(driver);
         } catch (DataIntegrityViolationException e) {
-            throw new DuplicatedCnhException("A CNH '" + driver.getCnh() + "' já está cadastrada no sistema");
+            throw new DuplicatedCnhException("Algo de errado durante a inserção do motorista");
         }
     }
 
-    @Transactional
-    public Driver completeProfile(Driver driver, Integer authenticatedId){
-        Driver authenticatedDriver = getByUser(userService.findById(authenticatedId));
-        authenticatedDriver.setCnh(driver.getCnh());
-        authenticatedDriver.setCnhCat(driver.getCnhCat());
-        authenticatedDriver.setCnhExpiration(driver.getCnhExpiration());
-
-        return insert(authenticatedDriver);
-    }
-
     @Transactional(readOnly = true)
-    public Driver findById(Integer id){
+    public Driver findById(Integer id) {
         return driverRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Não existe motorista cadastrado com o id '" + id + "'"));
+                .orElseThrow(() -> new NotFoundException("Recurso solicitado não foi encontrado"));
     }
 
     @Transactional(readOnly = true)
-    public Page<DriverProjection> findAll(String cnhCat, Pageable pageable){
-            Driver driver = new Driver();
-            if (cnhCat != null && cnhCat.length() == 1) {
-                driver.setCnhCat(Character.toUpperCase(cnhCat.charAt(0)));
-            }
-
-            ExampleMatcher exampleMatcher = ExampleMatcher.matching()
-                    .withIgnoreNullValues();
-
-            Example<Driver> example = Example.of(driver, exampleMatcher);
-
-
-            Page<Driver> driverPage = driverRepository.findAll(/*example,*/ pageable);
-
-            return driverPage.map(DriverProjectionImpl::new);
-    }
-
-    @Transactional
-    public Driver getByUser(User user){
-        try {
-            return driverRepository.findByUser(user);
-        }catch(Exception e){
-            throw new NotFoundException("O usuário não possui perfil de motorista associado");
+    public Page<DriverProjection> findAll(String cnhCat, Pageable pageable) {
+        Driver driver = new Driver();
+        if (cnhCat != null && cnhCat.length() == 1) {
+            driver.setCnhCat(Character.toUpperCase(cnhCat.charAt(0)));
         }
+
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching()
+                .withIgnoreNullValues();
+
+        Example<Driver> example = Example.of(driver, exampleMatcher);
+
+
+        Page<Driver> driverPage = driverRepository.findAll(example, pageable);
+
+        return driverPage.map(DriverProjectionImpl::new);
     }
 
     @Transactional
-    public void deleteByUser(User user){
-            Driver driver = getByUser(user);
-            driverRepository.delete(driver);
+    public Driver getByUser(User user) {
+        Driver driver = driverRepository.findByUser(user);
+        if (driver == null) {
+            throw new NotFoundException("Perfil de motorista não foi encontrado para este usuário.");
+        }
+        return driver;
     }
+
+    @Transactional
+    public void deleteByUser(User user) {
+        Driver driver = getByUser(user);
+        driverRepository.delete(driver);
+    }
+
+
 }
