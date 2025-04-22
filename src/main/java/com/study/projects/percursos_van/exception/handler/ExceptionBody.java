@@ -23,7 +23,6 @@ public class ExceptionBody {
     private String message;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Map<String, String> errors;
-    private String exception;
 
     public ExceptionBody(HttpServletRequest request, HttpStatus http, String message,Exception e){
         this.path = request.getRequestURI();
@@ -31,7 +30,6 @@ public class ExceptionBody {
         this.status = http.value();
         this.status_message = http.getReasonPhrase();
         this.message = message;
-        this.exception = getExceptionName(e);
 
         this.errors = getErrors(e);
     }
@@ -45,12 +43,5 @@ public class ExceptionBody {
             return result;
         }
         return null;
-    }
-
-    private String getExceptionName(Exception exception){
-        String exceptionFullName = exception.getClass().getName();
-        int lastPackageIndex = exceptionFullName
-                .lastIndexOf(".");
-        return exceptionFullName.substring(lastPackageIndex+1);
     }
 }
