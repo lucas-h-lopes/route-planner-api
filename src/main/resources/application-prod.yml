@@ -6,8 +6,11 @@ security:
 url:
   base: http://localhost:8080
   resource:
-    confirmation: /api/v1/account/email-confirmation
-    delete: /api/v1/account/delete
+    account:
+      confirm: /api/v1/account/email-confirmation
+      delete: /api/v1/account/delete
+    driver:
+      create: /api/v1/drivers
 spring:
   datasource:
     name: rotas_db

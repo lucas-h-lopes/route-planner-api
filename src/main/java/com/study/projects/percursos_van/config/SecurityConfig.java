@@ -25,11 +25,14 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @EnableWebMvc
 public class SecurityConfig {
 
-    @Value("${url.resource.confirmation}")
+    @Value("${url.resource.account.confirm}")
     private String emailConfirmationURI;
 
-    @Value("${url.resource.delete}")
+    @Value("${url.resource.account.delete}")
     private String accountDeleteURI;
+
+    @Value("${url.resource.driver.create}")
+    private String driverCreationURI;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
@@ -43,6 +46,7 @@ public class SecurityConfig {
                                 antMatcher(HttpMethod.POST, "/api/v1/auth"),
                                 antMatcher(HttpMethod.GET, emailConfirmationURI),
                                 antMatcher(HttpMethod.GET, accountDeleteURI),
+                                antMatcher(HttpMethod.POST, driverCreationURI),
                                 antMatcher("/h2/**"))
                         .permitAll()
                         .anyRequest().authenticated())
